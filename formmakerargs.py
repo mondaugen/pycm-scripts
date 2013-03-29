@@ -16,7 +16,7 @@ import argparse
 import formfiller
 
 __doc__ = "\
-generate a form file which is just a list of strings separated by newlines,\
+generate a form file which is just a list of strings separated by newlines, \
 some of which are the same."
 
 parser = argparse.ArgumentParser(\
@@ -26,49 +26,53 @@ __depth_help__ = 'How deep the form tree grows.'
 parser.add_argument('--depth', dest='depth', nargs='?',\
 	const=2, default=2, help=__depth_help__, type=int)
 
-__nsections_help__ = 'The number of distinct sections at a given layer of the\
+__nsections_help__ = 'The number of distinct sections at a given layer of the \
 tree.'
 
 parser.add_argument('--nsections', dest='nsections', nargs='?',\
 	const=1, default=1, help=__nsections_help__, type=int)
 
-__rest_prob_help__ = 'see source'
-#__rest_prob_help__ = '\
-#A number between 0 and 1 dictating the probability that a note will be a rest.\
-#So 0.1 means a 10% chance of being a rest.'
+__ndivisions_help__ = 'The total number of sections at a given layer of the tree \
+some of which will repeat.'
 
-parser.add_argument('--rest-prob', dest='restprob', nargs='?',\
-	const=0.0, default=0.0, help=__rest_prob_help__, type=float)
+parser.add_argument('--ndivisions', dest='ndivisions', nargs='?',\
+	const=1, default=1, help=__ndivisions_help__, type=int)
+
+parser.add_argument('--verbose', dest='verbose', action='store_true',\
+	help='print the generated form to stderr')
 
 args = parser.parse_args()
 
-def lenfun(aux):
-    return Fraction(random.randint(1,resolution),resolution)
+if args.nsections > args.ndivisions:
+    sys.stderr.write("number of sections must be less than number of divisions\n")
+    exit()
 
-def datumfunc(aux):
-    if random.random() < restprob:
-	return 'rest'
-    else:
-	return 'note'
+def temp_form_gen(depth, minlen,node):
+    formfreqs = n_randoms_that_sum_to_k(args.nsections,minlen)
+    return generate_random_form_from_frequencies(formfreqs)
 
-if formfile == None:
-    f = sys.stdin
-else:
-    f = open(formfile, 'r')
+def another_vert_generator(depth,node):
+    column = []
+    for i in xrange(1):
+	column.append(Sequential(chr(ord('A') + i)))
+    return column
 
-lines = f.readlines()
+def temp_len_gen(depth,node):
+    return args.ndivisions
 
-for i in xrange(len(lines)):
-    lines[i] = lines[i].strip()
+tree = Simultaneous('a')
 
+tree.grow_vh_tree_w_lengths(args.depth, temp_form_gen, another_vert_generator, temp_len_gen)
 
-random.seed()
+seqary = []
+curlen = Fraction(0)
+tree.fill_w_seq(seqary, curlen)
 
-sf = SectionFiller(lenfun, datumfunc)
-
-seqdict = formfiller.make_sequence_dict(lines, sf)
+for i in xrange(len(seqary)):
+    t, l, d = seqary[i]
+    seqary[i] = d
+    if args.verbose:
+        sys.stderr.write(str(d)+'\n')
 
 for s in seqary:
-    for l, d in seqdict[s]:
-	print str(l)+',', d
-
+    sys.stdout.write(s+'\n')

@@ -60,15 +60,15 @@ parser.add_argument('--rest-prob', dest='restprob', nargs='?',\
 args = parser.parse_args()
 
 def lenfun(aux):
-    return Fraction(random.randint(1,resolution),resolution)
+    return Fraction(random.randint(1,args.resolution),args.resolution)
 
 def datumfunc(aux):
-    if random.random() < restprob:
+    if random.random() < args.restprob:
 	return 'rest'
     else:
 	return 'note'
 
-if formfile == None:
+if args.formfile == None:
     f = sys.stdin
 else:
     f = open(formfile, 'r')
@@ -85,7 +85,7 @@ sf = SectionFiller(lenfun, datumfunc)
 
 seqdict = formfiller.make_sequence_dict(lines, sf)
 
-for s in seqary:
+for s in lines:
     for l, d in seqdict[s]:
 	print str(l)+',', d
 
