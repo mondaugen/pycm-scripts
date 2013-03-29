@@ -60,6 +60,7 @@ curlen = Fraction(0)
 tree.fill_w_seq(seqary, curlen)
 
 for i in xrange(len(seqary)):
+    sys.stderr.write(str(seqary[i])+'\n')
     t, l, d = seqary[i]
     seqary[i] = d
 
@@ -73,7 +74,6 @@ for s in set(seqary):
     seqdict[s] = sf.get_list_of_data()
 
 for s in seqary:
-    sys.stderr.write(s+'\n')
     for l, d in seqdict[s]:
 	print str(l)+',', d
 
